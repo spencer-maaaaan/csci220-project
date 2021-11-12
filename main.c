@@ -44,9 +44,12 @@ int retrieve_operand(int specifier, int mode){
 
 // test function
 void run_tests(){
-        // dumping top 100 memory locations
+        // dumping first 100 addresses
         for(int i=0;i<100;i++){
-                printf("%x ", mem[i]);
+                printf("%02x ", mem[i]);
+                if((i+1)%10 == 0){
+                        printf("\n");
+                }
         }
 
         // testing address mode
