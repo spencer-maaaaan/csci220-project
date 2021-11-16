@@ -17,6 +17,7 @@ void mem_dump(){
 
 // given an operand specifier and a memory addressing mode, returns the value of the operand
 int retrieve_operand(int specifier, int mode){
+        int low, high;
         switch(mode){
                 // immediate
                 case 0:
@@ -24,66 +25,80 @@ int retrieve_operand(int specifier, int mode){
                         break;
                 // direct                        
                 case 1:
-                        return mem[specifier];
+                        low = mem[specifier];
+                        high = mem[specifier+1];
                         break;
                 // indirect
                 case 2:
-                        return mem[mem[specifier]];
+                        low = mem[mem[specifier]];
+                        high = mem[mem[specifier+1]];
                         break;
                 // stack-relative
                 case 3:
-                        return mem[sp+specifier];
+                        low = mem[sp+specifier];
+                        high = mem[sp+specifier+1];
                         break;
                 // stack-relative deferred
                 case 4:
-                        return mem[mem[sp+specifier]];
+                        low = mem[mem[sp+specifier]];
+                        high = mem[mem[sp+specifier+1]];
                         break;
                 // indexed
                 case 5:
-                        return mem[x+specifier];
+                        low = mem[x+specifier];
+                        high = mem[x+specifier+1];
                         break;
                 // stack indexed
                 case 6:
-                        return mem[x+sp+specifier];
+                        low = mem[x+sp+specifier];
+                        high = mem[x+sp+specifier+1];
                         break;
                 // stack index deferred
                 case 7:
-                        return mem[mem[sp+specifier]+x];
+                        low = mem[mem[sp+specifier]+x];
+                        high = mem[mem[sp+specifier+1]+x];
                         break;
         }
+        return (high << 8) | low;
 }
 
 // instructions
-/*
-TODO:
- - ldb needs to set n and z bits accordingly
- - ldb and stb need to only interact with bytes, they basically do words
-*/
-void ldb(int reg, int operand_specifier, int address_mode){
+void deco(int operand){
+        printf("%d", operand);
+}
+
+void ldb(int reg, int operand, int operand_specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
-        // retrieving operand
-        int operand = retrieve_operand(operand_specifier, address_mode);
+        // making byte-size
+        operand = operand & 0x00ff;
 
         // if operand specifier is 0xfc15, taking from stdin, else loading byte from memory
         if(operand_specifier == 0xfc15){
                 *working_register = scanf("%x");
         }
         else {
-                *working_register = operand;
+                *working_register = *working_register & 0xff00;
+                *working_register = *working_register | operand;
+        }
+
+        // setting status bits
+        n = 0;
+        if(operand == 0x0000){
+                z = 1;
+        }
+        else {
+                z = 0;
         }
 }
 
-void stb(int reg, int operand_specifier, int address_mode){
+void stb(int reg, int operand, int operand_specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
-        // retrieving operand
-        int operand = retrieve_operand(operand_specifier, address_mode);
-        
-        // masking as to only interact with bits 8-15
-        operand = operand & 0x0f;
+        // making byte-size
+        operand = operand & 0x00ff;
 
         // if operand specifier is 0xfc16, printing ot stdout, else loading into working register
         if(operand_specifier == 0xfc16){
@@ -120,6 +135,7 @@ void main(){
                 int register_bit;
                 int operand_specifier;
                 int address_mode;
+                int operand;
 
                 // instructions >0x05 and <= 0x11 only have a register bit at spec<7>, so we should extract that and set it
                 if(instruction_specifier > 0x05 && instruction_specifier <= 0x11){
@@ -159,6 +175,7 @@ void main(){
                 else {
                         // if the instruction is non-unary, retrieving the operand before incrementing the program counter
                         operand_specifier = (mem[pc+1] << 8) | mem[pc+2];
+                        operand = retrieve_operand(operand_specifier, address_mode);
                         pc += 3;
                 }
 
@@ -215,6 +232,7 @@ void main(){
                         case 0x30: // deci
                                 break;
                         case 0x38: // deco
+                                deco(operand);
                                 break;
                         case 0x40: // hexo
                                 break;
@@ -239,15 +257,13 @@ void main(){
                         case 0xc0: // ldw
                                 break;
                         case 0xd0: // ldb
-                                ldb(register_bit, operand_specifier, address_mode);
+                                ldb(register_bit, operand, operand_specifier);
                                 break;
                         case 0xe0: // stw
                                 break;
                         case 0xf0: // stb
-                                stb(register_bit, operand_specifier, address_mode);
+                                stb(register_bit, operand, operand_specifier);
                                 break;
                 }
-                
-
         } while(instruction != 0x00);
 }
