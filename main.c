@@ -67,17 +67,6 @@ void deco(int operand){
         printf("%d", operand);
 }
 
-void add(int reg, int operand){
-        int *working_register = (reg)? &x:&a;
-        *working_register += operand;
-
-        // setting status bits
-        n = 
-        if(operand == 0x0000){
-                z = 1;
-        }
-}
-
 void ldb(int reg, int operand, int operand_specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
@@ -256,7 +245,6 @@ void main(){
                         case 0x58: // subsp
                                 break;
                         case 0x60: // add
-                                add(register_bit, operand);
                                 break;
                         case 0x70: // sub
                                 break;
