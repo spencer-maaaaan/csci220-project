@@ -171,7 +171,7 @@ void main(){
 
                 // increment the program counter
                 // instruction in first condition are unary, otherwise inc by 3
-                if(instruction_specifier >= 0x00 && instruction_specifier <= 0x11 || instruction_specifier >= 0x28 && instruction_specifier <= 0x2f){
+                if(instruction_specifier >= 0x00 && instruction_specifier <= 0x11 || instruction_specifier >= 0x26 && instruction_specifier <= 0x27){
                         pc++;
                 }
                 else {
