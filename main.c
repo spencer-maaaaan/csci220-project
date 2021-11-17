@@ -59,7 +59,7 @@ int retrieve_operand(int specifier, int mode){
                         high = mem[mem[sp+specifier+1]+x];
                         break;
         }
-        return (high << 8) | low;
+        return (low << 8) | high;
 }
 
 // instructions
@@ -71,15 +71,17 @@ void ldb(int reg, int operand, int operand_specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
-        // making byte-size
-        operand = operand & 0x00ff;
+        // making byte-sized: operand<0..7> <- operand<8..15>
+        operand = (operand & 0xff00) >> 8;
+
+        // clearing r<8..15> for assignment
+        *working_register = *working_register & 0xff00;
 
         // if operand specifier is 0xfc15, taking from stdin, else loading byte from memory
         if(operand_specifier == 0xfc15){
-                *working_register = scanf("%x");
+                *working_register = *working_register | scanf("%x");
         }
         else {
-                *working_register = *working_register & 0xff00;
                 *working_register = *working_register | operand;
         }
 
@@ -97,15 +99,15 @@ void stb(int reg, int operand, int operand_specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
-        // making byte-size
-        operand = operand & 0x00ff;
+        // getting r<8..15>
+        int byte = *working_register & 0x00ff;
 
         // if operand specifier is 0xfc16, printing ot stdout, else loading into working register
         if(operand_specifier == 0xfc16){
-                printf("%c", *working_register);
+                printf("%c", byte);
         }
         else {
-                mem[operand] = *working_register;
+                mem[operand] = byte;
         }
 }
 
