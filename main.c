@@ -67,7 +67,7 @@ void deco(int operand){
         printf("%d", operand);
 }
 
-void ldb(int reg, int operand, int operand_specifier){
+void ldb(int reg, int operand, int specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
@@ -78,7 +78,7 @@ void ldb(int reg, int operand, int operand_specifier){
         *working_register = *working_register & 0xff00;
 
         // if operand specifier is 0xfc15, taking from stdin, else loading byte from memory
-        if(operand_specifier == 0xfc15){
+        if(specifier == 0xfc15){
                 *working_register = *working_register | scanf("%x");
         }
         else {
@@ -90,19 +90,50 @@ void ldb(int reg, int operand, int operand_specifier){
         z = (*working_register)? 0:1;
 }
 
-void stb(int reg, int operand, int operand_specifier){
+void stb(int reg, int specifier, int mode){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
         // getting r<8..15>
         int byte = *working_register & 0x00ff;
 
-        // if operand specifier is 0xfc16, printing ot stdout, else loading into working register
-        if(operand_specifier == 0xfc16){
+        // if operand specifier is 0xfc16, printing to stdout, else storing at appropriate place
+        if(specifier == 0xfc16){
                 printf("%c", byte);
         }
         else {
-                mem[operand] = byte;
+                switch(mode){
+                // direct                        
+                case 1:
+                        mem[specifier] = byte;
+                        break;
+                // indirect
+                case 2:
+                        mem[mem[specifier]] = byte;
+                        break;
+                // stack-relative
+                case 3:
+                        mem[sp+specifier] = byte;
+                        break;
+                // stack-relative deferred
+                case 4:
+                        mem[mem[sp+specifier]] = byte;
+                        break;
+                // indexed
+                case 5:
+                        mem[x+specifier] = byte;
+                        break;
+                // stack indexed
+                case 6:
+                        mem[x+sp+specifier] = byte;
+                        break;
+                // stack index deferred
+                case 7:
+                        mem[mem[sp+specifier]+x] = byte;
+                        break;
+                default:
+                        printf("!! illegal address mode %d !!", mode);
+                }
         }
 }
 
@@ -259,7 +290,7 @@ void main(){
                         case 0xe0: // stw
                                 break;
                         case 0xf0: // stb
-                                stb(register_bit, operand, operand_specifier);
+                                stb(register_bit, operand_specifier, address_mode);
                                 break;
                 }
         } while(instruction != 0x00);
