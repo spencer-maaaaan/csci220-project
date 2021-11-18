@@ -71,8 +71,8 @@ void ldb(int reg, int operand, int operand_specifier){
         // setting working register
         int *working_register = (reg)? &x:&a;
 
-        // making byte-sized: operand<0..7> <- operand<8..15>
-        operand = (operand & 0xff00) >> 8;
+        // making byte-sized: operand<0..7> <- operand<8..15> for operand > 0x00ff
+        operand = (operand > 0x00ff)? (operand & 0xff00) >> 8 : operand & 0x00ff;
 
         // clearing r<8..15> for assignment
         *working_register = *working_register & 0xff00;
@@ -87,12 +87,7 @@ void ldb(int reg, int operand, int operand_specifier){
 
         // setting status bits
         n = 0;
-        if(*working_register == 0x0000){
-                z = 1;
-        }
-        else {
-                z = 0;
-        }
+        z = (*working_register)? 0:1;
 }
 
 void stb(int reg, int operand, int operand_specifier){
