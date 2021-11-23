@@ -114,11 +114,6 @@ void ldb(int *reg, int operand, int specifier){
 }
 
 void stw(int *reg, int specifier, int mode){
-        // conditionally negating the specifier to take it out of 2's complement
-        if(specifier >= 0x8000){
-                specifier = ((~specifier)+1) & 0xffff;
-        }
-
         // splitting register into low and high
         int low, high;
 
