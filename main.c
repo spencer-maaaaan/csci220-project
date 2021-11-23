@@ -1,12 +1,12 @@
 #include <stdio.h>
 
 // declaring memory and registers as globals
-int mem[65536];
+int mem[0xffff + 1];
 int a, x, n, z, v, c, pc, sp;
 
-void mem_dump(){
+void mem_dump(int start, int end){
         // dumping first 100 addresses
-        for(int i=0;i<100;i++){
+        for(int i=start;i<end;i++){
                 printf("%02x ", mem[i]);
                 if((i+1)%10 == 0){
                         printf("\n");
@@ -63,39 +63,118 @@ int retrieve_operand(int specifier, int mode){
 }
 
 // instructions
+void br(int operand){
+        pc = operand;
+}
+
 void deco(int operand){
         printf("%d", operand);
 }
 
-void ldb(int reg, int operand, int specifier){
-        // setting working register
-        int *working_register = (reg)? &x:&a;
+void addsp(int operand){
+        sp += operand;
+}
 
+void subsp(int operand){
+        sp -= operand;
+}
+
+void ldw(int *reg, int operand, int specifier){
+        // if operand specifier is 0xfc15 taking from stdin, else loading byte from memory
+        if(specifier == 0xfc15){
+                *reg = scanf("%x");
+        }
+        else {
+                *reg = operand;
+        }
+
+        // setting status bits
+        n = (operand < 0)? 1:0;
+        z = (operand)? 0:1;
+}
+
+void ldb(int *reg, int operand, int specifier){
         // making byte-sized: operand<0..7> <- operand<8..15> for operand > 0x00ff
         operand = (operand > 0x00ff)? (operand & 0xff00) >> 8 : operand & 0x00ff;
 
         // clearing r<8..15> for assignment
-        *working_register = *working_register & 0xff00;
+        *reg = *reg & 0xff00;
 
-        // if operand specifier is 0xfc15, taking from stdin, else loading byte from memory
+        // if operand specifier is 0xfc15 taking from stdin, else loading byte from memory
         if(specifier == 0xfc15){
-                *working_register = *working_register | scanf("%x");
+                *reg = *reg | scanf("%x");
         }
         else {
-                *working_register = *working_register | operand;
+                *reg = *reg | operand;
         }
 
         // setting status bits
         n = 0;
-        z = (*working_register)? 0:1;
+        z = (*reg)? 0:1;
 }
 
-void stb(int reg, int specifier, int mode){
-        // setting working register
-        int *working_register = (reg)? &x:&a;
+void stw(int *reg, int specifier, int mode){
+        // conditionally negating the specifier to take it out of 2's complement
+        if(specifier >= 0x8000){
+                specifier = ((~specifier)+1) & 0xffff;
+        }
 
+        // splitting register into low and high
+        int low, high;
+
+        low = (*reg  & 0xff00) >> 8;
+        high = *reg & 0x00ff;
+
+        // if operand specifier is 0xfc16, printing to stdout, else storing at appropriate place
+        if(specifier == 0xfc16){
+                printf("%c", *reg);
+        }
+        else {
+                switch(mode){
+                // direct                        
+                case 1:
+                        mem[specifier] = low;
+                        mem[specifier+1] = high;
+                        break;
+                // indirect
+                case 2:
+                        mem[mem[specifier]] = low;
+                        mem[mem[specifier]+1] = high;
+                        break;
+                // stack-relative
+                case 3:
+                        mem[sp+specifier] = low;
+                        mem[sp+specifier+1] = high;
+                        break;
+                // stack-relative deferred
+                case 4:
+                        mem[mem[sp+specifier]] = low;
+                        mem[mem[sp+specifier]+1] = high;
+                        break;
+                // indexed
+                case 5:
+                        mem[x+specifier] = low;
+                        mem[x+specifier+1] = high;
+                        break;
+                // stack indexed
+                case 6:
+                        mem[x+sp+specifier] = low;
+                        mem[x+sp+specifier+1] = high;
+                        break;
+                // stack index deferred
+                case 7:
+                        mem[mem[sp+specifier]+x] = low;
+                        mem[mem[sp+specifier]+x+1] = high;
+                        break;
+                default:
+                        printf("!! illegal address mode %d !!", mode);
+                }
+        }
+}
+
+void stb(int *reg, int specifier, int mode){
         // getting r<8..15>
-        int byte = *working_register & 0x00ff;
+        int byte = *reg & 0x00ff;
 
         // if operand specifier is 0xfc16, printing to stdout, else storing at appropriate place
         if(specifier == 0xfc16){
@@ -147,11 +226,11 @@ void main(){
                 i++;
         }
 
-        mem_dump(); // to see if the program was successfully loaded (remove in final submission)
+        mem_dump(0, 100); // to see if the program was successfully loaded (remove in final submission)
 
         // initialize program counter and stack pointer
         pc = 0;
-        sp = 0;
+        sp = 0xfb8f;
         
         // executing instructions until stop is encountered
         int instruction = 0x00;
@@ -161,6 +240,7 @@ void main(){
                 
                 // decode the instruction specifier
                 int register_bit;
+                int *working_register;
                 int operand_specifier;
                 int address_mode;
                 int operand;
@@ -169,26 +249,24 @@ void main(){
                 if(instruction_specifier > 0x05 && instruction_specifier <= 0x11){
                         instruction = instruction_specifier & 0xfe;
                         register_bit = instruction_specifier & 0x01;
-                        //printf("bbbb bbbr: register bit set to %d\n", register_bit);
+                        working_register = (register_bit)? &x:&a;
                 }
                 // instructions > 0x11 and <= 0x27 only specify address mode as either direct or indexed with spec<7>
                 else if(instruction_specifier > 0x11 && instruction_specifier <= 0x27){
                         instruction = instruction_specifier & 0xfe;
                         address_mode = (instruction_specifier & 0x01) ? 5 : 0;
-                        //printf("bbbb bbba: address mode set to %d\n", address_mode);
                 }
                 // instructions >0x27 and <= 0x5f have a 3 bit address mode at spec<5...7>
                 else if(instruction_specifier > 0x27 && instruction_specifier <= 0x5f){
                         instruction = instruction_specifier & 0xf8;
                         address_mode = instruction_specifier & 0x07;
-                        //printf("bbbb baaa: address mode set to %d\n", address_mode);
                 }
                 // instructions > 0x5f and <= 0xff have a 3 bit address mode at spec<5...7> and register bit at spec<4>
                 else if(instruction_specifier > 0x5f && instruction_specifier <= 0xff){
                         instruction = instruction_specifier & 0xf0;
                         address_mode = instruction_specifier & 0x07;
                         register_bit = (instruction_specifier & 0x08) >> 3;
-                        //printf("bbbb raaa: address mode set to %d and register bit set to %d\n", address_mode, register_bit);
+                        working_register = (register_bit)? &x:&a;
                 }
                 // instruction <= 0x05 don't have an address mode/register bit
                 else {
@@ -201,9 +279,18 @@ void main(){
                         pc++;
                 }
                 else {
-                        // if the instruction is non-unary, retrieving the operand before incrementing the program counter
+                        // concatenating next two addresses to make the operand
                         operand_specifier = (mem[pc+1] << 8) | mem[pc+2];
-                        operand = retrieve_operand(operand_specifier, address_mode);
+                        
+                        // if the operand is a signed 2 byte negative, converting it to a signed negative c int
+                        if(operand_specifier >= 0x8000 && operand_specifier != 0xfc15 && operand_specifier != 0xfc16){
+                                operand_specifier = -1*((~operand_specifier+1) & 0xffff);
+                        }
+
+                        // retrieving operand
+                        operand = retrieve_operand(operand_specifier, address_mode) & 0xffff;
+                                               
+                        // incrementing pc
                         pc += 3;
                 }
 
@@ -234,6 +321,7 @@ void main(){
                         case 0x10: // ror
                                 break;
                         case 0x12: // br
+                                br(operand);
                                 break;
                         case 0x14: // brle
                                 break;
@@ -247,7 +335,7 @@ void main(){
                                 break;
                         case 0x1e: // brgt
                                 break;
-                        case 0x20: // br
+                        case 0x20: // brv
                                 break;
                         case 0x22: // brc
                                 break;
@@ -267,8 +355,10 @@ void main(){
                         case 0x48: // stro
                                 break;
                         case 0x50: // addsp
+                                addsp(operand);
                                 break;
                         case 0x58: // subsp
+                                subsp(operand);
                                 break;
                         case 0x60: // add
                                 break;
@@ -283,14 +373,16 @@ void main(){
                         case 0xb0: // cpb
                                 break;
                         case 0xc0: // ldw
+                                ldw(working_register, operand, operand_specifier);
                                 break;
                         case 0xd0: // ldb
-                                ldb(register_bit, operand, operand_specifier);
+                                ldb(working_register, operand, operand_specifier);
                                 break;
                         case 0xe0: // stw
+                                stw(working_register, operand_specifier, address_mode);
                                 break;
                         case 0xf0: // stb
-                                stb(register_bit, operand_specifier, address_mode);
+                                stb(working_register, operand_specifier, address_mode);
                                 break;
                 }
         } while(instruction != 0x00);
