@@ -114,11 +114,6 @@ void ldb(int *reg, int operand, int specifier){
 }
 
 void stw(int *reg, int specifier, int mode){
-        // conditionally negating the specifier to take it out of 2's complement
-        if(specifier >= 0x8000){
-                specifier = ((~specifier)+1) & 0xffff;
-        }
-
         // splitting register into low and high
         int low, high;
 
@@ -297,10 +292,12 @@ void main(){
                 // execute the instruction fetched
                 switch(instruction){
                         case 0x00: // stop
+                                // NO IMPLEMENTATION NEEDED
                                 break;
                         case 0x01: // ret
                                 break;
                         case 0x02: // rettr
+                                // NO IMPLEMENTATION NEEDED
                                 break;
                         case 0x03: // movspa
                                 break;
@@ -342,8 +339,10 @@ void main(){
                         case 0x24: // call
                                 break;
                         case 0x26: // nopn
+                                // NO IMPLEMENTATION NEEDED
                                 break;
                         case 0x28: // nop
+                                // NO IMPLEMENTATION NEEDED
                                 break;
                         case 0x30: // deci
                                 break;
@@ -387,4 +386,3 @@ void main(){
                 }
         } while(instruction != 0x00);
 }
-//hello
