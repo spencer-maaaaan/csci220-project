@@ -67,8 +67,29 @@ void br(int operand){
         pc = operand;
 }
 
+void brle(int operand){
+	pc = (n||z)? operand;
+}
+
+void brle(int operand){
+	pc = (n||z)? operand;
+}
+
+/*
+brle
+brlt
+breq
+brne
+brge
+brgt
+*/
+
 void deco(int operand){
         printf("%d", operand);
+}
+
+void hexo(int operand){
+        printf("%X", operand);
 }
 
 void addsp(int operand){
@@ -295,7 +316,7 @@ void main(){
                                 break;
                         case 0x01: // ret
                                 break;
-                        case 0x02: // rettr
+                        case 0x02: // rettr // fake
                                 break;
                         case 0x03: // movspa
                                 break;
@@ -319,22 +340,28 @@ void main(){
                                 br(operand);
                                 break;
                         case 0x14: // brle
+                        	brle(operand);
                                 break;
                         case 0x16: // brlt
+                        	brlt(operand);
                                 break;
                         case 0x18: // breq
+                        	breq(operand);
                                 break;
                         case 0x1a: // brne
+                        	brne(operand);
                                 break;
                         case 0x1c: // brge
+                        	brge(operand);
                                 break;
                         case 0x1e: // brgt
+                        	brgt(operand);
                                 break;
                         case 0x20: // brv
                                 break;
                         case 0x22: // brc
                                 break;
-                        case 0x24: // call
+                        case 0x24: // call //
                                 break;
                         case 0x26: // nopn
                                 break;
@@ -346,6 +373,7 @@ void main(){
                                 deco(operand);
                                 break;
                         case 0x40: // hexo
+                        	hexo(operand);
                                 break;
                         case 0x48: // stro
                                 break;
