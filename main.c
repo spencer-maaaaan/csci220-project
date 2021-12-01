@@ -2,7 +2,7 @@
 
 // declaring memory and registers as globals
 int mem[0xffff + 1];
-int n, z, v, c, pc, sp;
+int a, x, n, z, v, c, pc, sp;
 int a;
 int x;
 
@@ -79,7 +79,7 @@ void movaflg(){
 	n = (a & 0x0008) >> 3;
 	z = (a & 0x0004) >> 2;
 	v = (a & 0x0002) >> 1;
-	z = (a & 0x0001);
+	c = (a & 0x0001);
 }
 
 void br(int operand){
@@ -109,12 +109,12 @@ void brne(int operand){
 
 void brge(int operand){
 	// branch if greater than or equal
-	pc = (~n||z)? operand:pc;
+	pc = (~n)? operand:pc;
 }
 
 void brgt(int operand){
 	// branch if greater than
-	pc = (~n)? operand:pc;
+	pc = (~n&~z)? operand:pc;
 }
 
 void brv(int operand){
