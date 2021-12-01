@@ -133,6 +133,44 @@ void hexo(int operand){
         printf("%04X", operand);
 }
 
+void stro(int specifier, int mode){
+        
+        // finding the starting address of the string
+        int start;
+        switch(mode){
+                // direct
+                case 1:
+                        start = specifier;
+                        break;
+                // indirect
+                case 2:
+                        start = mem[specifier];
+                        break;
+                // stack relative
+                case 3:
+                        start = sp + specifier;
+                        break;
+                // stack relative deferred
+                case 4:
+                        start = mem[sp + specifier];
+                        break;
+                // indexed
+                case 5:
+                        start = specifier + x;
+                        break;
+                default:
+                        printf("!! illegal address mode %d", mode);
+                        break;
+        }
+        
+        // printing each char of the string until null byte encountered
+        int i = 0;
+        while(mem[start+i] != 0x00){
+                printf("%c", mem[start+i]);
+                i++;
+        }
+}
+
 void addsp(int operand){
         sp += operand;
 }
@@ -426,6 +464,7 @@ void main(){
                         	hexo(operand);
                                 break;
                         case 0x48: // stro
+                                stro(operand_specifier, address_mode);
                                 break;
                         case 0x50: // addsp
                                 addsp(operand);
