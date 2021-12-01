@@ -76,10 +76,10 @@ void movflga(){
 }
 
 void movaflg(){
-	n = a & 0x0008;
-	z = a & 0x0004;
-	v = a & 0x0002;
-	z = a & 0x0001;
+	n = (a & 0x0008) >> 3;
+	z = (a & 0x0004) >> 2;
+	v = (a & 0x0002) >> 1;
+	z = (a & 0x0001);
 }
 
 void br(int operand){
