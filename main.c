@@ -140,6 +140,49 @@ void addsp(int operand){
 void subsp(int operand){
         sp -= operand;
 }
+void add(int *reg, int operand){
+        *reg+=operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+}
+void sub(int *reg, int operand){
+        *reg-=operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+}
+void and(int *reg, int operand){
+        *reg = *reg & operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+}
+
+void or(int *reg, int operand){
+        *reg = *reg | operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+}
+
+void cpw(int *reg, int operand){
+        int t = *reg - operand;
+        //setting the status bits
+        n = (t<0)? 1:0;
+        z = (t)? 0:1;
+        if(*reg>0 && operand<0){
+                v = (t>0x10000)? 1:0;
+
+        }else if(*reg<0 && operand>0){
+                v = (t<-65535)? 1:0;
+
+        }else{
+                v = 0;
+        }
+
+}
+
 
 void ldw(int *reg, int operand, int specifier){
         // if operand specifier is 0xfc15 taking from stdin, else loading byte from memory
@@ -434,14 +477,19 @@ void main(){
                                 subsp(operand);
                                 break;
                         case 0x60: // add
+                                add(working_register, operand);
                                 break;
                         case 0x70: // sub
+                                sub(working_register, operand);
                                 break;
                         case 0x80: // and
+                                and(working_register, operand);
                                 break;
                         case 0x90: // or
+                                or(working_register, operand);
                                 break;
                         case 0xa0: // cpw
+                                cpw(working_register, operand);
                                 break;
                         case 0xb0: // cpb
                                 break;
