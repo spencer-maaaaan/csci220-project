@@ -2,7 +2,9 @@
 
 // declaring memory and registers as globals
 int mem[0xffff + 1];
-int a, x, n, z, v, c, pc, sp;
+int n, z, v, c, pc, sp;
+int a;
+int x;
 
 void mem_dump(int start, int end){
         // dumping first 100 addresses
@@ -63,26 +65,67 @@ int retrieve_operand(int specifier, int mode){
 }
 
 // instructions
+
+void movspa(){
+	a = sp;
+}
+
+void movflga(){
+	a = a & 0xff00;
+	a = a | (n << 3 + z << 2 + v << 1 + c);
+}
+
+void movaflg(){
+	n = a & 0x0008;
+	z = a & 0x0004;
+	v = a & 0x0002;
+	z = a & 0x0001;
+}
+
 void br(int operand){
+	// branch unconditional
         pc = operand;
 }
 
 void brle(int operand){
-	pc = (n||z)? operand;
+	// branch if less than or equal
+	pc = (n||z)? operand:pc;
 }
 
-void brle(int operand){
-	pc = (n||z)? operand;
+void brlt(int operand){
+	// branch if less than
+	pc = (n)? operand:pc;
 }
 
-/*
-brle
-brlt
-breq
-brne
-brge
-brgt
-*/
+void breq(int operand){
+	// branch if equal
+	pc = (z)? operand:pc;
+}
+
+void brne(int operand){
+	// branch if not equal
+	pc = (~z)? operand:pc;
+}
+
+void brge(int operand){
+	// branch if greater than or equal
+	pc = (~n||z)? operand:pc;
+}
+
+void brgt(int operand){
+	// branch if greater than
+	pc = (~n)? operand:pc;
+}
+
+void brv(int operand){
+	// branch if overflow or something idk
+	pc = (v)? operand:pc;
+}
+
+void brc(int operand){
+	// branch if carry???????
+	pc = (c)? operand:pc;
+}
 
 void deco(int operand){
         printf("%d", operand);
@@ -319,10 +362,13 @@ void main(){
                         case 0x02: // rettr // fake
                                 break;
                         case 0x03: // movspa
+                        	movspa();
                                 break;
                         case 0x04: // movflga
+                        	movflga();
                                 break;
                         case 0x05: // movaflg
+                        	movaflg();
                                 break;
                         case 0x06: // not
                                 break;
@@ -358,10 +404,12 @@ void main(){
                         	brgt(operand);
                                 break;
                         case 0x20: // brv
+                        	brv(operand);
                                 break;
                         case 0x22: // brc
+                        	brc(operand);
                                 break;
-                        case 0x24: // call //
+                        case 0x24: // call // I CANNOT TAKE MYSELF SERIOUSLY IN ANYTHING I HATE WORKING IN A BUSINESS ENVIRONMENT anyway this is the hard one
                                 break;
                         case 0x26: // nopn
                                 break;
