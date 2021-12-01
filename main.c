@@ -64,6 +64,11 @@ int retrieve_operand(int specifier, int mode){
 
 // instructions
 
+void ret(){
+        pc = mem[sp];
+        sp +=2;
+}
+
 void movspa(){
 	a = sp;
 }
@@ -112,7 +117,7 @@ void brge(int operand){
 
 void brgt(int operand){
 	// branch if greater than
-	pc = (~n&~z)? operand:pc;
+	pc = (~n&&~z)? operand:pc;
 }
 
 void brv(int operand){
@@ -123,6 +128,12 @@ void brv(int operand){
 void brc(int operand){
 	// branch if carry???????
 	pc = (c)? operand:pc;
+}
+
+void call(int operand){
+        sp -= 2;
+        mem[sp] = pc;
+        pc = operand;
 }
 
 void deco(int operand){
@@ -357,6 +368,7 @@ void main(){
                                 // NO IMPLEMENTATION NEEDED
                                 break;
                         case 0x01: // ret
+                                ret();
                                 break;
                         case 0x02: // rettr
                                 // NO IMPLEMENTATION NEEDED
@@ -409,7 +421,8 @@ void main(){
                         case 0x22: // brc
                         	brc(operand);
                                 break;
-                        case 0x24: // call // I CANNOT TAKE MYSELF SERIOUSLY IN ANYTHING I HATE WORKING IN A BUSINESS ENVIRONMENT anyway this is the hard one
+                        case 0x24: // call
+                                call(operand);
                                 break;
                         case 0x26: // nopn
                                 // NO IMPLEMENTATION NEEDED
