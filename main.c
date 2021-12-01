@@ -130,7 +130,7 @@ void deco(int operand){
 }
 
 void hexo(int operand){
-        printf("%X", operand);
+        printf("%04X", operand);
 }
 
 void addsp(int operand){
