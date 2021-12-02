@@ -104,9 +104,41 @@ void neg(int *reg){
 }
 
 void asl(int *reg){
+        int temp = *reg;
         c = (*reg & 0x8000)? 1:0;
         *reg = (*reg << 1) & 0xffff;
-        
+        if (*reg == 0){
+                n = 0;
+                z = 1;
+                v = (c)? 1:0;
+        } else {
+                n = (*reg < 0)? 1:0;
+                z = 0;
+                v = ((temp < 0) != (*reg < 0));
+                //c is already set hee hee
+        }
+}
+
+void asr(int *reg){
+        int temp = *reg;
+        c = (*reg & 0x0001)? 1:0;
+        *reg = (*reg >> 1);
+        n = (*reg < 0)? 1:0;
+        z = (*reg == 0)? 1:0;
+        //how do you even get overflow???
+}
+
+void rol(int *reg){
+        c = (*reg & 0x8000)? 1:0;
+        *reg = (*reg << 1) & 0xfffe;
+        *reg = *reg | c;
+}
+
+void ror(int *reg){
+        int temp = *reg;
+        c = (*reg & 0x8000)? 1:0;
+        *reg = (*reg >> 1);
+        *reg = *reg | (c << 15);
 }
 
 void br(int operand){
@@ -448,14 +480,19 @@ void main(){
                                 not(working_register);
                                 break;
                         case 0x08: // neg
+                                neg(working_register);
                                 break;
                         case 0x0a: // asl
+                                asl(working_register);
                                 break;
                         case 0x0c: // asr
+                                asr(working_register);
                                 break;
                         case 0x0e: // rol
+                                rol(working_register);
                                 break;
                         case 0x10: // ror
+                                ror(working_register);
                                 break;
                         case 0x12: // br
                                 br(operand);
