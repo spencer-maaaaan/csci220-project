@@ -190,16 +190,37 @@ void subsp(int operand){
         sp -= operand;
 }
 void add(int *reg, int operand){
-        *reg+=operand;
+        int temp = *reg + operand;
         //setting the status bits
         n = (*reg<0)? 1:0;
         z = (*reg)? 0:1;
+         if(*reg>0 && operand>0){
+                v = (temp>0x10000)? 1:0;
+
+        }else if(*reg<0 && operand<0){
+                v = (temp<-65535)? 1:0;
+
+        }else{
+                v = 0;
+        }
+        *reg = temp;
 }
 void sub(int *reg, int operand){
-        *reg-=operand;
+        int temp = *reg-operand;
         //setting the status bits
-        n = (*reg<0)? 1:0;
-        z = (*reg)? 0:1;
+        n = (temp<0)? 1:0;
+        z = (temp)? 0:1;
+
+        if(*reg>0 && operand<0){
+                v = (temp>0x10000)? 1:0;
+
+        }else if(*reg<0 && operand>0){
+                v = (temp<-65535)? 1:0;
+
+        }else{
+                v = 0;
+        }
+        *reg = temp;
 }
 void and(int *reg, int operand){
         *reg = *reg & operand;
