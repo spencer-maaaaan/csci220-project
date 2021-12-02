@@ -85,6 +85,30 @@ void movaflg(){
 	c = (a & 0x0001);
 }
 
+void not(int *reg){
+        *reg = ~*reg;
+        n = (*reg < 0)? 1:0;
+        z = (*reg == 0)? 1:0;
+}
+
+void neg(int *reg){
+        if (*reg == 0x8000) {
+                n = 1;
+                z = 0;
+                v = 1;
+        } else {
+                *reg = -(*reg);
+                n = (*reg < 0)? 1:0;
+                z = (*reg == 0)? 1:0;
+        }
+}
+
+void asl(int *reg){
+        c = (*reg & 0x8000)? 1:0;
+        *reg = (*reg << 1) & 0xffff;
+        
+}
+
 void br(int operand){
 	// branch unconditional
         pc = operand;
@@ -421,6 +445,7 @@ void main(){
                         	movaflg();
                                 break;
                         case 0x06: // not
+                                not(working_register);
                                 break;
                         case 0x08: // neg
                                 break;
