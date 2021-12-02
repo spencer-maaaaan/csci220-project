@@ -387,14 +387,14 @@ void main(){
                 else {
                         // concatenating next two addresses to make the operand
                         operand_specifier = (mem[pc+1] << 8) | mem[pc+2];
-                        
-                        // if the operand is a signed 2 byte negative, converting it to a signed negative c int
-                        if(operand_specifier >= 0x8000 && operand_specifier != 0xfc15 && operand_specifier != 0xfc16){
-                                operand_specifier = -1*((~operand_specifier+1) & 0xffff);
-                        }
 
                         // retrieving operand
                         operand = retrieve_operand(operand_specifier, address_mode) & 0xffff;
+                        
+                        // if the operand is a signed 2 byte negative, converting it to a signed negative c int
+                        if(operand >= 0x8000 && operand_specifier != 0xfc15 && operand_specifier != 0xfc16){
+                                operand = -1*((~operand+1) & 0xffff);
+                        }
                                                
                         // incrementing pc
                         pc += 3;
