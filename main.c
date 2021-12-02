@@ -80,6 +80,55 @@ void movaflg(){
 	c = (a & 0x0001);
 }
 
+void not(int *reg){
+        *reg = ~*reg;
+        //setting status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg=0)? 1:0;
+}
+
+void neg(int *reg){
+        *reg = -*reg;
+        //setting status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg=0)? 1:0;
+        v = (*reg>=0x10000)? 1:0;
+}
+
+void asl(int *reg){
+        //setting carry bit to most significant bit
+        if(*reg & 0x8000 == 1){
+                c = 1;
+        }else{
+                c = 0;
+        }
+
+        *reg = *reg<<1;
+
+        //setting other status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg=0)? 1:0;
+        v = (*reg>=0x10000)? 1:0;
+
+
+}
+
+
+void asr(int *reg){
+        //setting carry bit to least significant bit
+        if(*reg & 0x0001 == 1){
+                c = 1;
+        }else{
+                c = 0;
+        }
+        
+        *reg = *reg>>1;
+
+        //setting other status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg=0)? 1:0;
+}
+
 void br(int operand){
 	// branch unconditional
         pc = operand;
@@ -414,12 +463,16 @@ void main(){
                         	movaflg();
                                 break;
                         case 0x06: // not
+                                not(working_register);
                                 break;
                         case 0x08: // neg
+                                neg(working_register);
                                 break;
                         case 0x0a: // asl
+                                asl(working_register);
                                 break;
                         case 0x0c: // asr
+                                asr(working_register);
                                 break;
                         case 0x0e: // rol
                                 break;
