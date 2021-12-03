@@ -252,6 +252,9 @@ void deci(int specifier, int mode){
 }
 
 void deco(int operand){
+        if(operand >= 0x8000){
+                operand = -1*((~operand+1) & 0xffff);
+        }
         printf("%d", operand);
 }
 
