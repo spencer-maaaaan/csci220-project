@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <math.h>
 // declaring memory and registers as globals
 int mem[0xffff + 1];
 int a, x, n, z, v, c, pc, sp;
@@ -214,7 +213,7 @@ void add(int *reg, int operand){
         for (int i = 0; i < 16; i++)
         {
                 //anding with 2^i to get *reg<15-i> and operand<15-i>
-                ander = pow(2,i);
+                ander = (i)? 2 << i-1:1;
                 rbit = *reg & ander;
                 obit = operand & ander;
                 //if rbit | obit & cee is 1, then there is carry for that bit
