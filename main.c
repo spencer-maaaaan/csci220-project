@@ -207,7 +207,7 @@ void add(int *reg, int operand){
                 v = 0;
         }
         //determining carry bit
-        int cee = 0;
+        int cee = c;
         int ander = 0;
         int rbit = 0;
         int obit = 0;
@@ -217,9 +217,9 @@ void add(int *reg, int operand){
                 ander = pow(2,i);
                 rbit = *reg & ander;
                 obit = operand & ander;
-                //if rbit + obit + cee is >=2, then there is carry for that bit
+                //if rbit | obit & cee is 1, then there is carry for that bit
                 //dont need to record the bit's value
-                if((rbit + obit + cee)>=2){
+                if( ((rbit | obit) & cee)==1){
                         cee = 1;
                 }else{
                         cee = 0;
