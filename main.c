@@ -191,6 +191,67 @@ void call(int operand){
         pc = operand;
 }
 
+void deci(int specifier, int mode){
+        int input;
+        scanf("%d", &input);
+
+        // cutting down to 2 bytes
+        input = input & 0xffff;
+
+        // checking for overflow
+        v = (input > 0xffff)? 1:0;
+
+        // splitting word into 2 bytes
+        int low, high;
+        low = (input  & 0xff00) >> 8;
+        high = input & 0x00ff;
+
+        // storing number in memory
+        switch(mode){
+                // direct                        
+                case 1:
+                        mem[specifier] = low;
+                        mem[specifier+1] = high;
+                        break;
+                // indirect
+                case 2:
+                        mem[mem[specifier]] = low;
+                        mem[mem[specifier]+1] = high;
+                        break;
+                // stack-relative
+                case 3:
+                        mem[sp+specifier] = low;
+                        mem[sp+specifier+1] = high;
+                        break;
+                // stack-relative deferred
+                case 4:
+                        mem[mem[sp+specifier]] = low;
+                        mem[mem[sp+specifier]+1] = high;
+                        break;
+                // indexed
+                case 5:
+                        mem[x+specifier] = low;
+                        mem[x+specifier+1] = high;
+                        break;
+                // stack indexed
+                case 6:
+                        mem[x+sp+specifier] = low;
+                        mem[x+sp+specifier+1] = high;
+                        break;
+                // stack index deferred
+                case 7:
+                        mem[mem[sp+specifier]+x] = low;
+                        mem[mem[sp+specifier]+x+1] = high;
+                        break;
+                default:
+                        printf("!! illegal address mode %d !!", mode);
+        }
+
+        // setting status bits
+        n = (input >= 0x8000)? 1:0;
+        z = (~input)? 1:0;
+}
+
 void deco(int operand){
         printf("%d", operand);
 }
