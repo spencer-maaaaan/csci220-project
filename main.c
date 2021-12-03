@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <math.h>
 // declaring memory and registers as globals
 int mem[0xffff + 1];
 int a, x, n, z, v, c, pc, sp;
@@ -66,7 +66,7 @@ int retrieve_operand(int specifier, int mode){
 
 void ret(){
         pc = mem[sp];
-        sp +=2;
+        sp += 2;
 }
 
 void movspa(){
@@ -125,7 +125,6 @@ void asr(int *reg){
         *reg = (*reg >> 1);
         n = (*reg < 0)? 1:0;
         z = (*reg == 0)? 1:0;
-        //how do you even get overflow???
 }
 
 void rol(int *reg){
@@ -244,6 +243,105 @@ void addsp(int operand){
 
 void subsp(int operand){
         sp -= operand;
+}
+
+//these are the ones that actually matter
+
+void add(int *reg, int operand){
+        int temp = *reg + operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+         if(*reg>0 && operand>0){
+                v = (temp>0x10000)? 1:0;
+
+        }else if(*reg<0 && operand<0){
+                v = (temp<-65535)? 1:0;
+
+        }else{
+                v = 0;
+        }
+        //determining carry bit
+        int cee = 0;
+        int ander = 0;
+        int rbit = 0;
+        int obit = 0;
+        for (int i = 0; i < 16; i++)
+        {
+                //anding with 2^i to get *reg<15-i> and operand<15-i>
+                ander = pow(2,i);
+                rbit = *reg & ander;
+                obit = operand & ander;
+                //if rbit + obit + cee is >=2, then there is carry for that bit
+                //dont need to record the bit's value
+                if((rbit + obit + cee)>=2){
+                        cee = 1;
+                }else{
+                        cee = 0;
+                }
+        }
+        c = cee;
+        *reg = temp;
+}
+        
+
+
+void sub(int *reg, int operand){
+        int temp = *reg-operand;
+        //setting the status bits
+        n = (temp<0)? 1:0;
+        z = (temp)? 0:1;
+
+        if(*reg>0 && operand<0){
+                v = (temp>0x10000)? 1:0;
+
+        }else if(*reg<0 && operand>0){
+                v = (temp<-65535)? 1:0;
+
+        }else{
+                v = 0;
+        }
+        
+        *reg = temp;
+}
+void and(int *reg, int operand){
+        *reg = *reg & operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+}
+
+void or(int *reg, int operand){
+        *reg = *reg | operand;
+        //setting the status bits
+        n = (*reg<0)? 1:0;
+        z = (*reg)? 0:1;
+}
+
+void cpw(int *reg, int operand){
+        int t = *reg - operand;
+        //setting the status bits
+        n = (t<0)? 1:0;
+        z = (t)? 0:1;
+        if(*reg>0 && operand<0){
+                v = (t>0x10000)? 1:0;
+
+        }else if(*reg<0 && operand>0){
+                v = (t<-65535)? 1:0;
+
+        }else{
+                v = 0;
+        }
+
+}
+
+void cpb(int *reg, int operand){
+      int rbyte = *reg&0x00FF;
+      int t = rbyte - operand;
+      n = (t<0)? 1:0;
+      z = (t<0)? 1:0;
+      v = 0;
+      c = 0;
 }
 
 void ldw(int *reg, int operand, int specifier){
@@ -548,16 +646,22 @@ void main(){
                                 subsp(operand);
                                 break;
                         case 0x60: // add
+                                add(working_register, operand);
                                 break;
                         case 0x70: // sub
+                                sub(working_register, operand);
                                 break;
                         case 0x80: // and
+                                and(working_register, operand);
                                 break;
                         case 0x90: // or
+                                or(working_register, operand);
                                 break;
                         case 0xa0: // cpw
+                                cpw(working_register, operand);
                                 break;
                         case 0xb0: // cpb
+                                cpb(working_register, operand);
                                 break;
                         case 0xc0: // ldw
                                 ldw(working_register, operand, operand_specifier);
