@@ -692,6 +692,7 @@ void main(){
                                 // NO IMPLEMENTATION NEEDED
                                 break;
                         case 0x30: // deci
+                                deci(operand_specifier, address_mode);
                                 break;
                         case 0x38: // deco
                                 deco(operand);
