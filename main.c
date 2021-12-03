@@ -422,8 +422,8 @@ void ldw(int *reg, int operand, int specifier){
 void ldb(int *reg, int operand, int specifier){
         int input;
 
-        // making byte-sized: operand<0..7> <- operand<8..15>
-        operand = (operand & 0xff00) >> 8;
+        // making byte-sized: operand<0..7> <- operand<8..15> for operand > 0x00ff
+         operand = (operand > 0x00ff)? (operand & 0xff00) >> 8 : operand & 0x00ff;
 
         // clearing r<8..15> for assignment
         *reg = *reg & 0xff00;
