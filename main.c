@@ -269,7 +269,7 @@ void add(int *reg, int operand){
         for (int i = 0; i < 16; i++)
         {
                 //anding with 2^i to get *reg<15-i> and operand<15-i>
-                ander = pow(2,i);
+                ander = 2 << i;
                 rbit = *reg & ander;
                 obit = operand & ander;
                 //if rbit + obit + cee is >=2, then there is carry for that bit
@@ -541,14 +541,17 @@ void main(){
                 else {
                         // concatenating next two addresses to make the operand
                         operand_specifier = (mem[pc+1] << 8) | mem[pc+2];
+                        
+                        // if the operand is a signed 2 byte negative, converting it to a signed negative c int for relevant addressing modes
+                        if(address_mode != 1 && address_mode != 2){
+                                if(operand_specifier >= 0x8000 && operand_specifier != 0xfc15 && operand_specifier != 0xfc16){
+                                        operand_specifier = -1*((~operand_specifier+1) & 0xffff);
+                                }
+                        }
 
                         // retrieving operand
                         operand = retrieve_operand(operand_specifier, address_mode) & 0xffff;
                         
-                        // if the operand is a signed 2 byte negative, converting it to a signed negative c int
-                        if(operand >= 0x8000 && operand_specifier != 0xfc15 && operand_specifier != 0xfc16){
-                                operand = -1*((~operand+1) & 0xffff);
-                        }
                                                
                         // incrementing pc
                         pc += 3;
