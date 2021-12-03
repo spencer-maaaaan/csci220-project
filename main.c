@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <math.h>
 // declaring memory and registers as globals
 int mem[0xffff + 1];
 int a, x, n, z, v, c, pc, sp;
@@ -206,8 +206,31 @@ void add(int *reg, int operand){
         }else{
                 v = 0;
         }
+        //determining carry bit
+        int cee = 0;
+        int ander = 0;
+        int rbit = 0;
+        int obit = 0;
+        for (int i = 0; i < 16; i++)
+        {
+                //anding with 2^i to get *reg<15-i> and operand<15-i>
+                ander = pow(2,i);
+                rbit = *reg & ander;
+                obit = operand & ander;
+                //if rbit + obit + cee is >=2, then there is carry for that bit
+                //dont need to record the bit's value
+                if((rbit + obit + cee)>=2){
+                        cee = 1;
+                }else{
+                        cee = 0;
+                }
+        }
+        c = cee;
         *reg = temp;
 }
+        
+
+
 void sub(int *reg, int operand){
         int temp = *reg-operand;
         //setting the status bits
@@ -578,6 +601,7 @@ void main(){
                                 cpw(working_register, operand);
                                 break;
                         case 0xb0: // cpb
+                                cpb(working_register, operand);
                                 break;
                         case 0xc0: // ldw
                                 ldw(working_register, operand, operand_specifier);
