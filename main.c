@@ -265,8 +265,7 @@ void hexo(int operand){
         printf("%04X", operand);
 }
 
-void stro(int specifier, int mode){
-        
+void stro(int specifier, int mode){ 
         // finding the starting address of the string
         int start;
         switch(mode){
@@ -311,99 +310,92 @@ void subsp(int operand){
         sp -= operand;
 }
 
-//these are the ones that actually matter
-
 void add(int *reg, int operand){
+        
         int temp = *reg + operand;
-        //setting the status bits
-        n = (*reg<0)? 1:0;
-        z = (*reg)? 0:1;
-         if(*reg>0 && operand>0){
-                v = (temp>0x10000)? 1:0;
 
-        }else if(*reg<0 && operand<0){
+        // checking for overflow
+        if(*reg>0 && operand>0){
+                v = (temp>0xFFFF)? 1:0;
+        }
+        else if(*reg<0 && operand<0){
                 v = (temp<-65535)? 1:0;
-
-        }else{
+        }
+        else {
                 v = 0;
         }
-        //determining carry bit
-        int cee = c;
-        int ander = 0;
-        int rbit = 0;
-        int obit = 0;
-        for (int i = 0; i < 16; i++)
-        {
-                //anding with 2^i to get *reg<15-i> and operand<15-i>
-                ander = (i)? 2 << i-1:1;
-                rbit = *reg & ander;
-                obit = operand & ander;
-                //if rbit + obit + cee is >=2, then there is carry for that bit
-                //dont need to record the bit's value
-                if((rbit + obit + cee)>=2){
-                        cee = 1;
-                }else{
-                        cee = 0;
-                }
-        }
-        c = cee;
         *reg = temp;
+
+        //setting the status bits
+        n = (*reg < 0)? 1:0;
+        z = (*reg)? 0:1;
+        c = (v)? 1:0;
 }
         
-
-
 void sub(int *reg, int operand){
+
         int temp = *reg-operand;
-        //setting the status bits
-        n = (temp<0)? 1:0;
-        z = (temp)? 0:1;
 
+        // checking for overflow
         if(*reg>0 && operand<0){
-                v = (temp>0x10000)? 1:0;
+                v = (temp>0xFFFF)? 1:0;
 
-        }else if(*reg<0 && operand>0){
+        }
+        else if(*reg<0 && operand>0){
                 v = (temp<-65535)? 1:0;
 
-        }else{
+        }
+        else {
                 v = 0;
         }
-        
         *reg = temp;
+        
+        //setting the status bits
+        n = (temp < 0)? 1:0;
+        z = (temp)? 0:1;
+        c = (v)? 1:0;
 }
 void and(int *reg, int operand){
         *reg = *reg & operand;
+        
         //setting the status bits
-        n = (*reg<0)? 1:0;
+        n = (*reg < 0)? 1:0;
         z = (*reg)? 0:1;
 }
 
 void or(int *reg, int operand){
         *reg = *reg | operand;
         //setting the status bits
-        n = (*reg<0)? 1:0;
+        n = (*reg < 0)? 1:0;
         z = (*reg)? 0:1;
 }
 
 void cpw(int *reg, int operand){
         int t = *reg - operand;
-        //setting the status bits
-        n = (t<0)? 1:0;
-        z = (t)? 0:1;
+        
+        // checking for overlow
         if(*reg>0 && operand<0){
-                v = (t>0x10000)? 1:0;
+                v = (t>0xFFFF)? 1:0;
 
-        }else if(*reg<0 && operand>0){
+        }
+        else if(*reg<0 && operand>0){
                 v = (t<-65535)? 1:0;
 
-        }else{
+        }
+        else {
                 v = 0;
         }
 
+        //setting the status bits
+        n = (t < 0)? 1:0;
+        z = (t)? 0:1;
+        c = (v)? 1:0;
 }
 
 void cpb(int *reg, int operand){
-      int rbyte = *reg&0x00FF;
-      int t = rbyte - operand;
+      int rbyte = *reg & 0x00FF;
+      int temp = rbyte - operand;
+      
       n = (t<0)? 1:0;
       z = (t<0)? 1:0;
       v = 0;
