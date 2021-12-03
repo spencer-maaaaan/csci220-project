@@ -199,6 +199,9 @@ void deci(int specifier, int mode){
 
         // checking for overflow
         v = (input > 0xffff)? 1:0;
+        if(v){
+                return;
+        }
 
         // splitting word into 2 bytes
         int low, high;
@@ -408,9 +411,12 @@ void cpb(int *reg, int operand){
 }
 
 void ldw(int *reg, int operand, int specifier){
+        int input;
+        
         // if operand specifier is 0xfc15 taking from stdin, else loading byte from memory
         if(specifier == 0xfc15){
-                *reg = scanf("%x");
+                scanf("%x", &input);
+                *reg = input;
         }
         else {
                 *reg = operand;
@@ -422,15 +428,19 @@ void ldw(int *reg, int operand, int specifier){
 }
 
 void ldb(int *reg, int operand, int specifier){
-        // making byte-sized: operand<0..7> <- operand<8..15> for operand > 0x00ff
-        operand = (operand > 0x00ff)? (operand & 0xff00) >> 8 : operand & 0x00ff;
+        int input;
+
+        // making byte-sized: operand<0..7> <- operand<8..15>
+        operand = (operand & 0xff00) >> 8;
 
         // clearing r<8..15> for assignment
         *reg = *reg & 0xff00;
 
         // if operand specifier is 0xfc15 taking from stdin, else loading byte from memory
         if(specifier == 0xfc15){
-                *reg = *reg | scanf("%x");
+                scanf("%x", &input);
+                input = input & 0x00ff;
+                *reg = *reg | input;
         }
         else {
                 *reg = *reg | operand;
