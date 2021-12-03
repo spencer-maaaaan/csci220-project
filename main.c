@@ -189,6 +189,9 @@ void addsp(int operand){
 void subsp(int operand){
         sp -= operand;
 }
+
+//these are the ones that actually matter
+
 void add(int *reg, int operand){
         int temp = *reg + operand;
         //setting the status bits
@@ -220,6 +223,7 @@ void sub(int *reg, int operand){
         }else{
                 v = 0;
         }
+        
         *reg = temp;
 }
 void and(int *reg, int operand){
@@ -253,6 +257,14 @@ void cpw(int *reg, int operand){
 
 }
 
+void cpb(int *reg, int operand){
+      int rbyte = *reg&0x00FF;
+      int t = rbyte - operand;
+      n = (t<0)? 1:0;
+      z = (t<0)? 1:0;
+      v = 0;
+      c = 0;
+}
 
 void ldw(int *reg, int operand, int specifier){
         // if operand specifier is 0xfc15 taking from stdin, else loading byte from memory
