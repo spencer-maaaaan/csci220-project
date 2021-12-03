@@ -192,12 +192,13 @@ void subsp(int operand){
 //these are the ones that actually matter
 
 void add(int *reg, int operand){
+
         int temp = *reg + operand;
         //setting the status bits
         n = (*reg<0)? 1:0;
         z = (*reg)? 0:1;
          if(*reg>0 && operand>0){
-                v = (temp>0x10000)? 1:0;
+                v = (temp>0xFFFF)? 1:0;
 
         }else if(*reg<0 && operand<0){
                 v = (temp<-65535)? 1:0;
@@ -205,39 +206,20 @@ void add(int *reg, int operand){
         }else{
                 v = 0;
         }
-        //determining carry bit
-        int cee = c;
-        int ander = 0;
-        int rbit = 0;
-        int obit = 0;
-        for (int i = 0; i < 16; i++)
-        {
-                //anding with 2^i to get *reg<15-i> and operand<15-i>
-                ander = (i)? 2 << i-1:1;
-                rbit = *reg & ander;
-                obit = operand & ander;
-                //if rbit | obit & cee is 1, then there is carry for that bit
-                //dont need to record the bit's value
-                if( ((rbit | obit) & cee)==1){
-                        cee = 1;
-                }else{
-                        cee = 0;
-                }
-        }
-        c = cee;
+
+        c = (v)? 1:0;
         *reg = temp;
 }
         
-
-
 void sub(int *reg, int operand){
+
         int temp = *reg-operand;
         //setting the status bits
         n = (temp<0)? 1:0;
         z = (temp)? 0:1;
 
         if(*reg>0 && operand<0){
-                v = (temp>0x10000)? 1:0;
+                v = (temp>0xFFFF)? 1:0;
 
         }else if(*reg<0 && operand>0){
                 v = (temp<-65535)? 1:0;
@@ -245,7 +227,7 @@ void sub(int *reg, int operand){
         }else{
                 v = 0;
         }
-        
+        c = (v)? 1:0;
         *reg = temp;
 }
 void and(int *reg, int operand){
@@ -268,7 +250,7 @@ void cpw(int *reg, int operand){
         n = (t<0)? 1:0;
         z = (t)? 0:1;
         if(*reg>0 && operand<0){
-                v = (t>0x10000)? 1:0;
+                v = (t>0xFFFF)? 1:0;
 
         }else if(*reg<0 && operand>0){
                 v = (t<-65535)? 1:0;
@@ -276,6 +258,7 @@ void cpw(int *reg, int operand){
         }else{
                 v = 0;
         }
+        c = (v)? 1:0;
 
 }
 
