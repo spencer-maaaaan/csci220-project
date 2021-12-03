@@ -396,8 +396,8 @@ void cpb(int *reg, int operand){
       int rbyte = *reg & 0x00FF;
       int temp = rbyte - operand;
       
-      n = (t<0)? 1:0;
-      z = (t<0)? 1:0;
+      n = (temp < 0)? 1:0;
+      z = (temp < 0)? 1:0;
       v = 0;
       c = 0;
 }
